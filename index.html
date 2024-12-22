@@ -183,6 +183,12 @@
             </div>
 
             <div class="admin-section">
+                <h3>Thay Đổi Banner</h3>
+                <input type="text" id="bannerImage" placeholder="URL hình ảnh banner">
+                <button onclick="changeBanner()">Thay Đổi Banner</button>
+            </div>
+
+            <div class="admin-section">
                 <h3>Quản Lý Phần Mềm</h3>
                 <div id="adminSoftwareList"></div>
             </div>
@@ -328,6 +334,12 @@
                     <button class="delete-btn" onclick="deleteItem(this)">Xóa</button>
                 `;
             }
+        }
+
+        function changeBanner() {
+            const bannerImage = document.getElementById('bannerImage').value;
+            const header = document.getElementById('mainBanner');
+            header.style.backgroundImage = `url('${bannerImage}')`;
         }
 
         function saveContactInfo() {
