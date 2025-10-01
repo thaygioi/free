@@ -1,49 +1,40 @@
-
-import { GoogleGenAI, Modality } from '@google/genai';
+import { GoogleGenAI, Modality } from "@google/genai";
 
 export const restoreImage = async (
   base64ImageData: string,
   mimeType: string,
   prompt: string
 ): Promise<string> => {
-  if (!process.env.API_KEY) {
-    throw new Error("API key is not configured. Please set the API_KEY environment variable.");
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+
+  if (!apiKey) {
+    throw new Error("API key is not configured. Please set VITE_GEMINI_API_KEY in environment variables.");
   }
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+  const ai = new GoogleGenAI({ apiKey });
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-image-preview',
+      model: "gemini-2.5-flash-image-preview",
       contents: {
         parts: [
-          {
-            inlineData: {
-              data: base64ImageData,
-              mimeType: mimeType,
-            },
-          },
-          {
-            text: prompt,
-          },
+          { inlineData: { data: base64ImageData, mimeType } },
+          { text: prompt },
         ],
       },
-      config: {
-        responseModalities: [Modality.IMAGE, Modality.TEXT],
-      },
+      config: { responseModalities: [Modality.IMAGE] },
     });
 
-    if (response.candidates && response.candidates.length > 0) {
-      for (const part of response.candidates[0].content.parts) {
-        if (part.inlineData) {
-          return part.inlineData.data;
-        }
-      }
-    }
-    
-    throw new Error('Không nhận được hình ảnh hợp lệ từ API. Vui lòng thử lại với một yêu cầu khác.');
+    // Trích xuất base64 ảnh
+    const imageBase64 = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
 
+    if (!imageBase64) {
+      throw new Error("Không nhận được dữ liệu ảnh từ Gemini API.");
+    }
+
+    return imageBase64;
   } catch (error) {
-    console.error("Gemini API call failed:", error);
-    throw new Error('Yêu cầu đến AI thất bại. Điều này có thể do hình ảnh không phù hợp hoặc sự cố mạng.');
+    console.error("Gemini API Error:", error);
+    throw error;
   }
 };
